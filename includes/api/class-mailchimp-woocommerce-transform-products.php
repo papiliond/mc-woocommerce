@@ -89,7 +89,6 @@ class MailChimp_WooCommerce_Transform_Products
         $product->setPublishedAtForeign(mailchimp_date_utc($post->post_date));
         $product->setTitle($woo->get_title());
         $product->setUrl($woo->get_permalink());
-        
         $original_vendor = '';
         if (in_array('woocommerce-product-vendors/woocommerce-product-vendors.php', apply_filters('active_plugins', get_option('active_plugins'))) || defined('WC_PRODUCT_VENDORS_VERSION') ){ 
             $vendor_id = WC_Product_Vendors_Utils::get_vendor_id_from_product($woo->get_id() );
@@ -101,6 +100,23 @@ class MailChimp_WooCommerce_Transform_Products
             $product->setVendor($vendor_filter);
         } else if ($original_vendor != '' && is_string($original_vendor)) {
             $product->setVendor($original_vendor);
+        } else {
+            /**
+             * Insert the category labels you want to add as vendor (only one per product)
+             */
+            $important_category_labels = array("Nespresso kompatibilis kávékapszulák", "Szemes kávék");
+            $categoryList = strip_tags(wc_get_product_category_list($woo->get_id(), ", ", "", ""));
+
+            $category = "";
+            foreach ($important_category_labels as &$label) {
+                if (strpos($categoryList, $label) !== false) {
+                    $category = $label;
+                    break;
+                }
+            }
+
+            // Set the product category as vendor
+            $product->setVendor($category);
         }
 
         foreach ($variants as $variant) {
